@@ -1,0 +1,8 @@
+.env
+.git
+.gitignore
+__pycache__/
+.pytest_cache/
+uploads/*
+models_cache/*
+tests/

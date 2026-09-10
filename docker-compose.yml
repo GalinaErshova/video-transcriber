@@ -1,0 +1,45 @@
+services:
+  redis:
+    image: redis:7-alpine
+    networks:
+      - app-net
+
+  web:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - app-net
+
+  worker:
+    build: .
+    command: celery -A app.celery_app worker --loglevel=info
+    volumes:
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - app-net
+
+  flower:
+    image: mher/flower
+    command: celery flower --broker=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
